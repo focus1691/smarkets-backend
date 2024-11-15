@@ -9,7 +9,28 @@ event_blueprint = Blueprint('events', __name__)
 def get_events():
     events = Event.query.all()
     events_list = [
-        {"id": event.id, "name": event.name, "start_time": event.start_time, "type": event.type}
+        {
+            "id": event.id,
+            "name": event.name,
+            "start_time": event.start_time,
+            "type": event.type,
+            "markets": [
+                {
+                    "id": market.id,
+                    "name": market.name,
+                    "event_id": market.event_id,
+                    "contracts": [
+                        {
+                            "id": contract.id,
+                            "name": contract.name,
+                            "market_id": contract.market_id,
+                        }
+                        for contract in market.contracts
+                    ],
+                }
+                for market in event.markets
+            ],
+        }
         for event in events
     ]
     return jsonify(events_list), 200
@@ -21,7 +42,29 @@ def get_event(event_id):
     if not event:
         return jsonify({"error": "Event not found"}), 404
 
-    return jsonify({"id": event.id, "name": event.name, "start_time": event.start_time, "type": event.type}), 200
+    event_data = {
+        "id": event.id,
+        "name": event.name,
+        "start_time": event.start_time,
+        "type": event.type,
+        "markets": [
+            {
+                "id": market.id,
+                "name": market.name,
+                "event_id": market.event_id,
+                "contracts": [
+                    {
+                        "id": contract.id,
+                        "name": contract.name,
+                        "market_id": contract.market_id,
+                    }
+                    for contract in market.contracts
+                ],
+            }
+            for market in event.markets
+        ],
+    }
+    return jsonify(event_data), 200
 
 
 @event_blueprint.route('/', methods=['POST'])
